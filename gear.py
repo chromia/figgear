@@ -24,6 +24,8 @@ __draw_center_hole = False
 __center_hole_size = 0.15
 __bottom_type = "spline"
 __image_margin = 0
+__involute_step = 0.5
+__spline_division_num = 50
 _col_r = 128
 _col_g = 128
 _col_b = 128
@@ -52,7 +54,7 @@ def _add_bottom_points_line(points: PointList, new_points: PointList) -> None:
 
 
 def _add_bottom_points_spline(points: PointList, new_4_points: PointList,
-                              division_num: int = 50) -> None:
+                              division_num: int) -> None:
     """
     スプライン補間で歯底の曲線を作る
     :param points: 既存の点列
@@ -81,7 +83,8 @@ def _add_bottom_points_spline(points: PointList, new_4_points: PointList,
         points.append((x, y))
 
 
-def make_gear_figure(m: int, z: int, alpha_deg: float, bottom_type: str) \
+def make_gear_figure(m: int, z: int, alpha_deg: float,
+                     bottom_type: str, **kwargs) \
         -> Tuple[PointList, Dict[str, float]]:
     """
     歯車の形状を表す点列を生成する。点列を順番に線で結ぶと歯車が描画できる。
@@ -94,6 +97,14 @@ def make_gear_figure(m: int, z: int, alpha_deg: float, bottom_type: str) \
       points: 歯車の形状を表す座標点列
       blueprints: 歯車の諸元情報
     """
+
+    # オプションの確認
+    # インボリュート曲線の点の間隔
+    involute_step = kwargs.get("involute_step", __involute_step)
+    # スプライン曲線の分割数
+    spline_division_num = kwargs.get("spline_division_num",
+                                     __spline_division_num)
+
     alpha = math.radians(alpha_deg)  # 圧力角(radian)
     p = m * math.pi  # ピッチ
     s = p / 2  # 歯厚
@@ -115,9 +126,8 @@ def make_gear_figure(m: int, z: int, alpha_deg: float, bottom_type: str) \
     cos_bottom = math.cos(-angle_bottom)  # ※逆方向に回転させる
     sin_bottom = math.sin(-angle_bottom)
 
-    inv_step = 0.5  # インボリュート曲線の点の間隔
     r_diff = radius_addendum - radius_base
-    inv_count = math.ceil(r_diff / inv_step)  # 曲線の分割点数
+    inv_count = math.ceil(r_diff / involute_step)  # 曲線の分割点数
 
     points = []
     for i in range(z):
@@ -134,7 +144,7 @@ def make_gear_figure(m: int, z: int, alpha_deg: float, bottom_type: str) \
         if bottom_type == "line":
             _add_bottom_points_line(points, points_bottom)
         else:
-            _add_bottom_points_spline(points, points_bottom)
+            _add_bottom_points_spline(points, points_bottom, spline_division_num)
 
         # インボリュート曲線を描く
         points_inv1 = []
@@ -230,7 +240,8 @@ def make_gear_image(output: Union[str, BinaryIO], m: int, z: int,
     line_width = ssaa
 
     # 歯車の形状を求める
-    points, blueprints = make_gear_figure(m, z, alpha, bottom_type)
+    points, blueprints = make_gear_figure(m, z, alpha, bottom_type, **kwargs)
+    print("num of points: ", len(points))
 
     # 画像を生成
     width = round(blueprints['diameter_addendum']) + ssaa * image_margin * 2
@@ -300,6 +311,10 @@ def main():
                         help=f'Specify the figure along bottom line. select "spline" or "line". default is "{__bottom_type}".')
     parser.add_argument('--image-margin', type=int,
                         help=f'The margin size on all four-sides of the image. default is {__image_margin}.')
+    parser.add_argument('--involute-step', type=float,
+                        help=f'Division step(distance) of involute curve. default is {__involute_step}')
+    parser.add_argument('--spline-division-num', type=int,
+                        help=f'Division number of spline bottom line. default is {__spline_division_num}.')
     # 色に関するパラメータ
     parser.add_argument('-r', type=int,
                         help=f'R channel value of gear color. default is {_col_r}.')
