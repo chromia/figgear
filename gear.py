@@ -83,7 +83,7 @@ def _add_bottom_points_spline(points: PointList, new_4_points: PointList,
         points.append((x, y))
 
 
-def make_gear_figure(m: int, z: int, alpha_deg: float,
+def make_gear_figure(m: float, z: int, alpha_deg: float,
                      bottom_type: str, **kwargs) \
         -> Tuple[PointList, Dict[str, float]]:
     """
@@ -201,7 +201,7 @@ def draw_circle(draw: ImageDraw, xy: Tuple[float, float],
     draw.ellipse((x1, y1, x2, y2), fill, outline, width)
 
 
-def make_gear_image(output: Union[str, BinaryIO], m: int, z: int,
+def make_gear_image(output: Union[str, BinaryIO], m: float, z: int,
                     **kwargs) -> Dict[str, float]:
     """
     歯車の画像を生成する
@@ -291,7 +291,7 @@ def main():
                                      argument_default=argparse.SUPPRESS)
     parser.add_argument('output', type=str,
                         help='The path of output image file.')
-    parser.add_argument('m', type=int,
+    parser.add_argument('m', type=float,
                         help='Module number represents the size of the gear-tooth.')
     parser.add_argument('z', type=int,
                         help='The number of teeth.')
