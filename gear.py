@@ -47,7 +47,7 @@ def _add_bottom_points_line(points: PointList, new_points: PointList) -> None:
     :param new_points: 新規に追加する点列
     :return: なし
     """
-    for point in new_points:
+    for point in new_points[1:-1]:
         points.append(point)
 
 
@@ -77,7 +77,7 @@ def _add_bottom_points_spline(points: PointList, new_4_points: PointList,
     spline = splprep([xs, ys])[0]
     detail = np.linspace(0, 1, num=division_num, endpoint=True)
     ix, iy = splev(detail, spline)
-    for x, y in zip(ix, iy):
+    for x, y in zip(ix[1:-1], iy[1:-1]):
         points.append((x, y))
 
 
