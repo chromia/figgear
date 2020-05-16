@@ -241,7 +241,6 @@ def make_gear_image(output: Union[str, BinaryIO], m: int, z: int,
 
     # 歯車の形状を求める
     points, blueprints = make_gear_figure(m, z, alpha, bottom_type, **kwargs)
-    print("num of points: ", len(points))
 
     # 画像を生成
     width = round(blueprints['diameter_addendum']) + ssaa * image_margin * 2
