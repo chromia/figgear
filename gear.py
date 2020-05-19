@@ -31,6 +31,7 @@ _col_g = 128
 _col_b = 128
 _col_a = 128
 _col_af = 255
+__height_axis = "y"
 
 
 def _inv(alpha: float) -> float:
@@ -199,6 +200,89 @@ def draw_circle(draw: ImageDraw, xy: Tuple[float, float],
     x2 = int(xy[0] + radius)
     y2 = int(xy[1] + radius)
     draw.ellipse((x1, y1, x2, y2), fill, outline, width)
+
+
+def make_gear_triangles(height: float, **kwargs) -> Tuple[List[float], List[int]]:
+    """
+    歯車の立体形状を生成し、三角形のリストを返す
+    height以外の引数はmake_gear_figureと同じ
+    デフォルトでY軸が歯車の高さに対応するが、height_axisオプション(値はx,y,zから選択)で変更可能
+    :param height: 歯車の高さ
+    :return: (vertices, indices)
+        vertices: 頂点座標リスト。点1つにつき3つの座標値x,y,zを含む[v1x,v1y,v1z,v2x, ...]
+        indices: インデックスリスト。三角形1つにつき3つの頂点番号を含む[t1a,t1b,t1c,t2a, ...]
+    """
+    figure, _ = make_gear_figure(**kwargs)
+    height_axis = kwargs.get("height_axis", __height_axis)  # 高さに対象にする軸
+    half_height = height / 2
+    cx, cz = 0, 0
+
+    vertices = []
+    indices = []
+    # 一度に作れなくもないが、部分毎に順番に作成する(後々分割することも考えて)
+    # 天面
+    n_polygon = len(figure)
+    i_start = 0
+    vertices.append(cx)
+    vertices.append(half_height)
+    vertices.append(cz)
+    for p in figure:
+        vertices.append(p[0])
+        vertices.append(half_height)
+        vertices.append(p[1])
+    for i in range(1, n_polygon):
+        indices.append(i_start+i)
+        indices.append(i_start)
+        indices.append(i_start+i+1)
+    indices.append(i_start+n_polygon)
+    indices.append(i_start)
+    indices.append(i_start+1)
+
+    # 底面
+    i_start = 1 + n_polygon
+    vertices.append(cx)
+    vertices.append(-half_height)
+    vertices.append(cz)
+    for p in figure:
+        vertices.append(p[0])
+        vertices.append(-half_height)
+        vertices.append(p[1])
+    for i in range(1, n_polygon):
+        indices.append(i_start+i+1)
+        indices.append(i_start)
+        indices.append(i_start+i)
+    indices.append(i_start+1)
+    indices.append(i_start)
+    indices.append(i_start+n_polygon)
+
+    # 側面
+    offset = 1 + n_polygon  # 同じ方位にある天面と底面の番号の差
+    for i in range(1, n_polygon):
+        indices.append(i+1)
+        indices.append(i+1+offset)
+        indices.append(i+offset)
+        indices.append(i+offset)
+        indices.append(i)
+        indices.append(i+1)
+    indices.append(1)
+    indices.append(1 + offset)
+    indices.append(offset + n_polygon)
+    indices.append(offset + n_polygon)
+    indices.append(n_polygon)
+    indices.append(1)
+
+    # 基準軸変更
+    num_vertices = len(vertices) // 3
+    if height_axis == "x":
+        for i in range(num_vertices):
+            # XとYを交換
+            vertices[i*3+0], vertices[i*3+1] = vertices[i*3+1], vertices[i*3+0]
+    elif height_axis == "z":
+        for i in range(num_vertices):
+            # YとZを交換
+            vertices[i*3+1], vertices[i*3+2] = vertices[i*3+2], vertices[i*3+1]
+
+    return vertices, indices
 
 
 def make_gear_image(output: Union[str, BinaryIO], m: float, z: int,
