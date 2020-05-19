@@ -8,7 +8,13 @@ This library is for hobby use, and does not aim for correctness under ISO standa
 - Numpy
 - Pillow
 - Scipy
-- Pygame (for animation example)
+
+for gear_anim.py demo app
+- Pygame
+
+for gear_3d.py demo app
+- PyOpenGL
+- PyGLM
 
 ## Usage
 
@@ -20,10 +26,16 @@ python gear.py outputfile module tooth_number [options]
 python gear.py -h  # for more details
 ```
 
-To run an Animation example
+To run an Animation app
 
 ```sh
 python gear_anim.py
+```
+
+To run 3D demo app(requires a graphics card which supports OpenGL 3.3 or later)
+
+```sh
+python gear_3d.py
 ```
 
 To generate m=8, z=20 (m is module number, z is the number of teeth).
