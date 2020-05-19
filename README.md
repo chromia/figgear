@@ -14,6 +14,7 @@ for gear_anim.py demo app
 
 for gear_3d.py demo app
 - PyOpenGL
+- GLFW
 - PyGLM
 
 ## Usage
